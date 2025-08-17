@@ -31,62 +31,44 @@ class RaceLeaderboard {
 
     /**
      * LOCAL TEST MODE
-     * Generates mock race data for testing purposes
+     * Polls a local backend for new race data
      */
     startLocalTestMode() {
-        console.log('📊 Starting Local Test Mode');
+        console.log('📊 Starting Local Test Mode - Polling for updates');
         
-        // Mock data configuration
-        const mockConfig = {
-            interval: 3000, // New finisher every 3 seconds
-            bibNumbers: this.generateBibNumbers(50), // Generate 50 random bib numbers
-            baseTime: 300000, // Base time: 5 minutes in milliseconds
-            timeVariation: 120000 // ±2 minutes variation
-        };
+        const POLLING_URL = 'http://localhost:8000/results';
+        const POLLING_INTERVAL = 2000; // Check for new results every 2 seconds
 
-        let finisherIndex = 0;
+        // Keep track of how many results we've already processed
+        let processedCount = 0;
 
-        // Generate a new finisher every few seconds
-        const mockInterval = setInterval(() => {
-            if (finisherIndex >= mockConfig.bibNumbers.length) {
-                console.log('🏁 All mock finishers have completed the race');
-                clearInterval(mockInterval);
-                return;
+        setInterval(async () => {
+            try {
+                const response = await fetch(POLLING_URL);
+                if (!response.ok) {
+                    // Don't log an error if the server just hasn't started yet
+                    if (response.status !== 404) {
+                         console.error(`Error fetching results: ${response.statusText}`);
+                    }
+                    return;
+                }
+                
+                const results = await response.json();
+                
+                // Check if there are new results to add
+                if (results.length > processedCount) {
+                    const newFinishers = results.slice(processedCount);
+                    newFinishers.forEach(finisher => {
+                        console.log(`🏃 Received new finisher: Bib #${finisher.bibNumber}`);
+                        this.addFinisher(finisher);
+                    });
+                    processedCount = results.length;
+                }
+            } catch (error) {
+                // This will happen before the server is running, which is normal
+                // console.log("Server not available yet...");
             }
-
-            // Generate mock finisher data
-            const mockFinisher = {
-                bibNumber: mockConfig.bibNumbers[finisherIndex],
-                finishTimeMs: mockConfig.baseTime + 
-                             (Math.random() * mockConfig.timeVariation * 2) - 
-                             mockConfig.timeVariation + 
-                             (finisherIndex * 5000) // Each finisher is slightly slower
-            };
-
-            console.log(`🏃 New finisher: Bib #${mockFinisher.bibNumber}, Time: ${this.formatTime(mockFinisher.finishTimeMs)}`);
-            
-            // Add the finisher to the leaderboard
-            this.addFinisher(mockFinisher);
-            finisherIndex++;
-        }, mockConfig.interval);
-    }
-
-    /**
-     * Generate random bib numbers for testing
-     */
-    generateBibNumbers(count) {
-        const bibNumbers = [];
-        const usedNumbers = new Set();
-        
-        while (bibNumbers.length < count) {
-            const bibNumber = Math.floor(Math.random() * 9999) + 1;
-            if (!usedNumbers.has(bibNumber)) {
-                usedNumbers.add(bibNumber);
-                bibNumbers.push(bibNumber);
-            }
-        }
-        
-        return bibNumbers.sort((a, b) => a - b);
+        }, POLLING_INTERVAL);
     }
 
     /**
