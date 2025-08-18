@@ -17,7 +17,7 @@ class RaceAdminDashboard {
             adminPassword: 'admin123',
             
             // API endpoints - update these to match your backend
-            apiBaseUrl: '/api',
+            apiBaseUrl: 'http://localhost:8000',
             endpoints: {
                 results: '/api/results',
                 reorder: '/api/reorder'
@@ -191,8 +191,11 @@ class RaceAdminDashboard {
         // Update connection status
         this.updateConnectionStatus('connecting');
         
-        // Load initial data
+        // Load the initial state of the leaderboard from your API
         await this.loadFinishers();
+
+        // Start listening for live updates from the public WebSocket feed
+        this.startRealTimeSync();
     }
 
     /**
@@ -622,52 +625,70 @@ class RaceAdminDashboard {
      * Connects to the public WebSocket to receive live updates.
      */
     startRealTimeSync() {
-        // Use the same public WebSocket URL as your leaderboard UI
-        const PUBLIC_WEBSOCKET_URL = 'wss://your-public-websocket-endpoint.com/race-updates';
+        // Use the correct WebSocket URL (ws:// not http://)
+        const PUBLIC_WEBSOCKET_URL = 'ws://localhost:8000/ws';
 
         try {
-            const ws = new WebSocket(PUBLIC_WEBSOCKET_URL);
+            this.websocket = new WebSocket(PUBLIC_WEBSOCKET_URL);
 
-            ws.onopen = () => {
+            this.websocket.onopen = () => {
                 console.log('🔄 Real-time sync connection established.');
-                // We can update the connection status dot here if needed
+                this.updateConnectionStatus('connected');
             };
 
-            ws.onmessage = (event) => {
+            this.websocket.onmessage = (event) => {
                 try {
-                    const finisherData = JSON.parse(event.data);
-                    console.log('🔄 Sync: Received new finisher data', finisherData);
+                    const messageData = JSON.parse(event.data);
+                    console.log('🔄 Sync: Received message', messageData);
 
-                    // A simple function to add or update the entry without a full reload
-                    this.updateOrAddFinisher(finisherData);
+                    // Handle different message types from the server
+                    if (messageData.type === 'update') {
+                        // Handle finisher update
+                        this.updateOrAddFinisher(messageData.data);
+                    } else if (messageData.type === 'delete') {
+                        // Handle finisher deletion
+                        this.removeFinisher(messageData.id);
+                    } else if (messageData.type === 'reorder') {
+                        // Handle reorder - reload all data
+                        this.state.finishers = messageData.data;
+                        this.renderFinishers();
+                    } else {
+                        // Handle simple finisher addition (backward compatibility)
+                        this.updateOrAddFinisher(messageData);
+                    }
 
                 } catch (error) {
                     console.error('❌ Sync: Error parsing message', error);
                 }
             };
 
-            ws.onerror = (error) => {
+            this.websocket.onerror = (error) => {
                 console.error('❌ Sync: WebSocket error', error);
+                this.updateConnectionStatus('disconnected');
             };
 
-            ws.onclose = () => {
+            this.websocket.onclose = () => {
                 console.log('🔄 Sync: Connection closed. Will attempt to reconnect...');
-                // Simple reconnect logic
+                this.updateConnectionStatus('disconnected');
                 setTimeout(() => this.startRealTimeSync(), 5000);
             };
         } catch (error) {
             console.error('❌ Sync: Failed to establish WebSocket connection', error);
+            this.updateConnectionStatus('disconnected');
         }
     }
-    
-    // NOTE: authenticateUser is already correct and does not need to be changed.
     
     /**
      * A helper to smartly add/update finishers received from the sync connection
      */
     updateOrAddFinisher(finisherData) {
-        // We'll use bibNumber for matching, assuming it's unique
-        const existingFinisherIndex = this.state.finishers.findIndex(f => f.bibNumber === finisherData.bibNumber);
+        // Use id for matching first, then fall back to bibNumber for new additions
+        let existingFinisherIndex = this.state.finishers.findIndex(f => f.id === finisherData.id);
+        
+        if (existingFinisherIndex === -1) {
+            // If no id match, try bibNumber for backward compatibility
+            existingFinisherIndex = this.state.finishers.findIndex(f => f.bibNumber === finisherData.bibNumber);
+        }
 
         if (existingFinisherIndex > -1) {
             // Update existing finisher
@@ -687,6 +708,25 @@ class RaceAdminDashboard {
         });
         
         this.renderFinishers();
+    }
+
+    /**
+     * Remove a finisher from the local state (used for WebSocket delete messages)
+     */
+    removeFinisher(finisherId) {
+        const finisherIndex = this.state.finishers.findIndex(f => f.id === finisherId);
+        if (finisherIndex > -1) {
+            const removedFinisher = this.state.finishers.splice(finisherIndex, 1)[0];
+            console.log('🗑️ Removed finisher from sync:', removedFinisher);
+            
+            // Re-rank remaining finishers and re-render
+            this.state.finishers.sort((a, b) => a.finishTimeMs - b.finishTimeMs);
+            this.state.finishers.forEach((finisher, index) => {
+                finisher.rank = index + 1;
+            });
+            
+            this.renderFinishers();
+        }
     }
 
     /**
