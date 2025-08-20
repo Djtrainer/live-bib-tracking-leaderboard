@@ -4,71 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Race Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <link rel="stylesheet" href="admin-style.css">
 </head>
 <body>
-    <!-- Login Gate (visible by default) -->
+    <!-- Login Container -->
     <div class="login-container" id="loginContainer">
         <div class="login-card">
             <div class="login-header">
-                <h1>🏁 Race Admin</h1>
-                <p>Enter password to access dashboard</p>
+                <span class="material-symbols-outlined login-icon">admin_panel_settings</span>
+                <h1>Race Admin Dashboard</h1>
+                <p>Enter your credentials to access the admin panel</p>
             </div>
+            
             <form class="login-form" id="loginForm">
                 <div class="input-group">
-                    <label for="password">Password</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        placeholder="Enter admin password"
-                        required
-                        autocomplete="current-password"
-                    >
+                    <label for="password">Admin Password</label>
+                    <div class="input-field">
+                        <span class="material-symbols-outlined input-icon">lock</span>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Enter admin password"
+                            required
+                        >
+                    </div>
                 </div>
+                
+                <div class="login-error hidden" id="loginError">
+                    <span class="material-symbols-outlined">error</span>
+                    <span>Invalid password. Please try again.</span>
+                </div>
+                
                 <button type="submit" class="login-btn">
                     <span class="btn-text">Access Dashboard</span>
-                    <span class="btn-loading hidden">Authenticating...</span>
+                    <span class="material-symbols-outlined btn-spinner">sync</span>
                 </button>
-                <div class="error-message hidden" id="loginError">
-                    Invalid password. Please try again.
-                </div>
             </form>
         </div>
     </div>
 
-    <!-- Main Admin Interface (hidden by default) -->
+    <!-- Main Admin Container -->
     <div class="admin-container hidden" id="adminContainer">
-        <!-- Header -->
-        <header class="admin-header">
-            <div class="header-content">
-                <div class="header-left">
-                    <h1 class="admin-title">Race Admin Dashboard</h1>
-                    <div class="connection-status">
-                        <span class="status-dot" id="connectionDot"></span>
-                        <span class="status-text" id="connectionStatus">Connecting...</span>
-                    </div>
+        <!-- Top App Bar -->
+        <header class="app-bar">
+            <div class="app-bar-content">
+                <div class="app-bar-title">
+                    <h1>Race Results Management</h1>
                 </div>
-                <div class="header-right">
-                    <button class="logout-btn" id="logoutBtn">
-                        <span>🚪</span> Logout
+                <div class="app-bar-actions">
+                    <div class="connection-status" id="connectionStatus">
+                        <span class="material-symbols-outlined status-icon" id="statusIcon">wifi_off</span>
+                        <span class="status-text" id="statusText">Connecting...</span>
+                    </div>
+                    <button class="icon-btn" id="refreshBtn" title="Refresh Data">
+                        <span class="material-symbols-outlined">refresh</span>
+                    </button>
+                    <button class="primary-btn" id="addFinisherBtn">
+                        <span class="material-symbols-outlined">add</span>
+                        <span>Add Finisher</span>
+                    </button>
+                    <button class="icon-btn logout-btn" id="logoutBtn" title="Logout">
+                        <span class="material-symbols-outlined">logout</span>
                     </button>
                 </div>
             </div>
         </header>
 
         <!-- Main Content -->
-        <main class="admin-main">
-            <!-- Add New Finisher Form -->
-            <section class="add-section">
-                <div class="section-header">
-                    <h2>Add New Finisher</h2>
-                    <button class="toggle-form-btn" id="toggleFormBtn">
-                        <span>➕</span> Show Form
+        <main class="main-content">
+            <!-- Add Finisher Form -->
+            <div class="form-card hidden" id="formCard">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="material-symbols-outlined">person_add</span>
+                        <h2>Add New Finisher</h2>
+                    </div>
+                    <button class="icon-btn" id="closeFormBtn" title="Close Form">
+                        <span class="material-symbols-outlined">close</span>
                     </button>
                 </div>
                 
-                <div class="add-form-container hidden" id="addFormContainer">
+                <div class="card-content">
                     <form class="add-form" id="addFinisherForm">
                         <div class="form-row">
                             <div class="input-group">
@@ -77,92 +98,99 @@
                                     type="number" 
                                     id="bibNumber" 
                                     name="bibNumber" 
-                                    placeholder="e.g., 123"
-                                    min="1"
-                                    max="9999"
+                                    value="123"
+                                    min="1" 
+                                    max="9999" 
                                     required
                                 >
                             </div>
+                            
                             <div class="input-group">
-                                <label for="racerName">Racer Name</label>
+                                <label for="racerName">Runner Name</label>
                                 <input 
                                     type="text" 
                                     id="racerName" 
                                     name="racerName" 
-                                    placeholder="e.g., John Smith"
-                                    maxlength="50"
+                                    value="John Smith"
+                                    maxlength="50" 
                                     required
                                 >
                             </div>
+                            
                             <div class="input-group">
-                                <label for="finishTime">Finish Time (MM:SS.ms)</label>
+                                <label for="finishTime">Finish Time</label>
                                 <input 
                                     type="text" 
                                     id="finishTime" 
                                     name="finishTime" 
-                                    placeholder="e.g., 05:21.35"
-                                    pattern="^[0-9]{2}:[0-9]{2}\.[0-9]{2}$"
-                                    title="Format: MM:SS.ms (e.g., 05:21.35)"
+                                    value="05:21.35"
+                                    pattern="^[0-9]{2}:[0-9]{2}\.[0-9]{2}$" 
                                     required
                                 >
                             </div>
                         </div>
+                        
                         <div class="form-actions">
-                            <button type="submit" class="add-btn">
-                                <span class="btn-text">Add Finisher</span>
-                                <span class="btn-loading hidden">Adding...</span>
+                            <button type="button" class="secondary-btn" id="cancelBtn">
+                                <span class="material-symbols-outlined">close</span>
+                                <span>Cancel</span>
                             </button>
-                            <button type="button" class="cancel-btn" id="cancelAddBtn">Cancel</button>
+                            <button type="submit" class="primary-btn">
+                                <span class="material-symbols-outlined">add</span>
+                                <span class="btn-text">Add Finisher</span>
+                                <span class="material-symbols-outlined btn-spinner">sync</span>
+                            </button>
                         </div>
                     </form>
                 </div>
-            </section>
+            </div>
 
-            <!-- Leaderboard Section -->
-            <section class="leaderboard-section">
-                <div class="section-header">
-                    <h2>Current Leaderboard</h2>
-                    <div class="leaderboard-actions">
-                        <button class="refresh-btn" id="refreshBtn">
-                            <span>🔄</span> Refresh
-                        </button>
+            <!-- Results Table -->
+            <div class="table-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="material-symbols-outlined">list</span>
+                        <h2>Current Results</h2>
                         <span class="record-count" id="recordCount">0 finishers</span>
                     </div>
                 </div>
-
-                <div class="table-container">
+                
+                <div class="card-content">
+                    <!-- Loading State -->
                     <div class="loading-state" id="loadingState">
-                        <div class="spinner"></div>
-                        <p>Loading race data...</p>
+                        <span class="material-symbols-outlined spinning">sync</span>
+                        <p>Loading race results...</p>
                     </div>
-
+                    
+                    <!-- Empty State -->
                     <div class="empty-state hidden" id="emptyState">
-                        <div class="empty-icon">🏃‍♂️</div>
-                        <h3>No Finishers Yet</h3>
+                        <span class="material-symbols-outlined empty-icon">list</span>
+                        <h3>No finishers yet</h3>
                         <p>Add the first finisher to get started</p>
                     </div>
-
-                    <div class="table-wrapper hidden" id="tableWrapper">
-                        <table class="admin-table" id="adminTable">
+                    
+                    <!-- Table -->
+                    <div class="table-container hidden" id="tableContainer">
+                        <table class="results-table">
                             <thead>
                                 <tr>
-                                    <th class="drag-handle-header">
-                                        <span title="Drag to reorder">⋮⋮</span>
+                                    <th class="drag-header">
+                                        <span class="material-symbols-outlined">drag_indicator</span>
                                     </th>
-                                    <th>Rank</th>
-                                    <th>Bib #</th>
-                                    <th>Racer Name</th>
-                                    <th>Finish Time</th>
-                                    <th>Actions</th>
+                                    <th class="rank-header">Rank</th>
+                                    <th class="bib-header">Bib</th>
+                                    <th class="name-header">Runner Name</th>
+                                    <th class="time-header">Finish Time</th>
+                                    <th class="actions-header">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminTableBody">
-                                <!-- Dynamic content will be inserted here -->
+                            <tbody id="tableBody">
+                                <!-- Dynamic content -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </section>
+            </div>
         </main>
     </div>
 
@@ -171,20 +199,29 @@
         <div class="modal">
             <div class="modal-header">
                 <h3 id="modalTitle">Confirm Action</h3>
+                <button class="icon-btn" id="modalCloseBtn" title="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
             </div>
             <div class="modal-body">
                 <p id="modalMessage">Are you sure you want to perform this action?</p>
             </div>
-            <div class="modal-actions">
-                <button class="modal-btn confirm-btn" id="confirmBtn">Confirm</button>
-                <button class="modal-btn cancel-btn" id="modalCancelBtn">Cancel</button>
+            <div class="modal-footer">
+                <button class="secondary-btn" id="modalCancelBtn">
+                    <span class="material-symbols-outlined">close</span>
+                    <span>Cancel</span>
+                </button>
+                <button class="danger-btn" id="confirmBtn">
+                    <span class="material-symbols-outlined">check</span>
+                    <span>Confirm</span>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notifications -->
+    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer">
-        <!-- Toast messages will be dynamically inserted here -->
+        <!-- Toast notifications will be inserted here -->
     </div>
 
     <script src="admin-script.js"></script>

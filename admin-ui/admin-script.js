@@ -1,12 +1,12 @@
 /**
- * Race Admin Dashboard - JavaScript Controller
+ * Race Admin Dashboard - JavaScript Controller (Google Gemini Style)
  * 
  * This script handles:
  * 1. Authentication and login gate
  * 2. CRUD operations for race results
  * 3. API communication with backend
- * 4. Drag-and-drop reordering
- * 5. Real-time UI updates
+ * 4. Real-time UI updates
+ * 5. Material Design interactions
  */
 
 class RaceAdminDashboard {
@@ -34,7 +34,7 @@ class RaceAdminDashboard {
             finishers: [],
             isLoading: false,
             editingRowId: null,
-            draggedElement: null
+            addFormVisible: false
         };
 
         // DOM elements
@@ -47,23 +47,27 @@ class RaceAdminDashboard {
             loginError: document.getElementById('loginError'),
             
             // Header elements
-            connectionDot: document.getElementById('connectionDot'),
-            connectionStatus: document.getElementById('connectionStatus'),
+            statusIcon: document.getElementById('statusIcon'),
+            statusText: document.getElementById('statusText'),
+            refreshBtn: document.getElementById('refreshBtn'),
             logoutBtn: document.getElementById('logoutBtn'),
+            addFinisherBtn: document.getElementById('addFinisherBtn'),
             
             // Form elements
-            toggleFormBtn: document.getElementById('toggleFormBtn'),
-            addFormContainer: document.getElementById('addFormContainer'),
+            formCard: document.getElementById('formCard'),
+            closeFormBtn: document.getElementById('closeFormBtn'),
             addFinisherForm: document.getElementById('addFinisherForm'),
-            cancelAddBtn: document.getElementById('cancelAddBtn'),
+            bibNumberInput: document.getElementById('bibNumber'),
+            racerNameInput: document.getElementById('racerName'),
+            finishTimeInput: document.getElementById('finishTime'),
+            cancelBtn: document.getElementById('cancelBtn'),
             
             // Table elements
-            refreshBtn: document.getElementById('refreshBtn'),
             recordCount: document.getElementById('recordCount'),
-            loadingState: document.getElementById('loadingState'),
+            tableContainer: document.getElementById('tableContainer'),
+            tableBody: document.getElementById('tableBody'),
             emptyState: document.getElementById('emptyState'),
-            tableWrapper: document.getElementById('tableWrapper'),
-            adminTableBody: document.getElementById('adminTableBody'),
+            loadingState: document.getElementById('loadingState'),
             
             // Modal elements
             modalOverlay: document.getElementById('modalOverlay'),
@@ -71,6 +75,7 @@ class RaceAdminDashboard {
             modalMessage: document.getElementById('modalMessage'),
             confirmBtn: document.getElementById('confirmBtn'),
             modalCancelBtn: document.getElementById('modalCancelBtn'),
+            modalCloseBtn: document.getElementById('modalCloseBtn'),
             
             // Toast container
             toastContainer: document.getElementById('toastContainer')
@@ -100,24 +105,26 @@ class RaceAdminDashboard {
      */
     setupEventListeners() {
         // Login form
-        this.elements.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+        this.elements.loginForm?.addEventListener('submit', (e) => this.handleLogin(e));
         
         // Logout button
-        this.elements.logoutBtn.addEventListener('click', () => this.handleLogout());
-        
-        // Form toggle
-        this.elements.toggleFormBtn.addEventListener('click', () => this.toggleAddForm());
-        this.elements.cancelAddBtn.addEventListener('click', () => this.hideAddForm());
-        
-        // Add finisher form
-        this.elements.addFinisherForm.addEventListener('submit', (e) => this.handleAddFinisher(e));
+        this.elements.logoutBtn?.addEventListener('click', () => this.handleLogout());
         
         // Refresh button
-        this.elements.refreshBtn.addEventListener('click', () => this.loadFinishers());
+        this.elements.refreshBtn?.addEventListener('click', () => this.loadFinishers());
+        
+        // Add finisher button
+        this.elements.addFinisherBtn?.addEventListener('click', () => this.showAddForm());
+        this.elements.closeFormBtn?.addEventListener('click', () => this.hideAddForm());
+        this.elements.cancelBtn?.addEventListener('click', () => this.hideAddForm());
+        
+        // Add finisher form
+        this.elements.addFinisherForm?.addEventListener('submit', (e) => this.handleAddFinisher(e));
         
         // Modal buttons
-        this.elements.modalCancelBtn.addEventListener('click', () => this.hideModal());
-        this.elements.modalOverlay.addEventListener('click', (e) => {
+        this.elements.modalCancelBtn?.addEventListener('click', () => this.hideModal());
+        this.elements.modalCloseBtn?.addEventListener('click', () => this.hideModal());
+        this.elements.modalOverlay?.addEventListener('click', (e) => {
             if (e.target === this.elements.modalOverlay) {
                 this.hideModal();
             }
@@ -148,11 +155,12 @@ class RaceAdminDashboard {
         event.preventDefault();
         
         const password = this.elements.passwordInput.value.trim();
-        const loginBtn = event.target.querySelector('.login-btn');
+        const loginBtn = event.target.querySelector('button[type="submit"]');
         
         // Show loading state
-        loginBtn.classList.add('loading');
-        this.elements.loginError.classList.add('hidden');
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<span class="material-symbols-outlined loading-spinner">progress_activity</span> Signing in...';
+        this.elements.loginError?.classList.add('hidden');
         
         try {
             // Simulate API call delay for realistic UX
@@ -168,11 +176,12 @@ class RaceAdminDashboard {
             
         } catch (error) {
             console.error('❌ Login failed:', error);
-            this.elements.loginError.classList.remove('hidden');
+            this.elements.loginError?.classList.remove('hidden');
             this.elements.passwordInput.focus();
             this.elements.passwordInput.select();
         } finally {
-            loginBtn.classList.remove('loading');
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<span class="btn-text">Access Dashboard</span><span class="material-symbols-outlined btn-spinner">sync</span>';
         }
     }
 
@@ -185,8 +194,8 @@ class RaceAdminDashboard {
         this.state.isAuthenticated = true;
         
         // Hide login, show admin interface
-        this.elements.loginContainer.classList.add('hidden');
-        this.elements.adminContainer.classList.remove('hidden');
+        this.elements.loginContainer?.classList.add('hidden');
+        this.elements.adminContainer?.classList.remove('hidden');
         
         // Update connection status
         this.updateConnectionStatus('connecting');
@@ -208,41 +217,42 @@ class RaceAdminDashboard {
         this.state.finishers = [];
         
         // Reset forms
-        this.elements.loginForm.reset();
-        this.elements.addFinisherForm.reset();
+        this.elements.loginForm?.reset();
+        this.elements.addFinisherForm?.reset();
         this.hideAddForm();
         this.hideModal();
         
         // Show login, hide admin interface
-        this.elements.adminContainer.classList.add('hidden');
-        this.elements.loginContainer.classList.remove('hidden');
+        this.elements.adminContainer?.classList.add('hidden');
+        this.elements.loginContainer?.classList.remove('hidden');
         
         // Focus password input
-        this.elements.passwordInput.focus();
+        this.elements.passwordInput?.focus();
     }
 
     /**
      * Update connection status indicator
      */
     updateConnectionStatus(status) {
-        const dot = this.elements.connectionDot;
-        const text = this.elements.connectionStatus;
+        const dot = this.elements.statusDot;
+        const statusText = this.elements.connectionStatus?.querySelector('span:last-child');
+        
+        if (!dot || !statusText) return;
         
         // Remove all status classes
-        dot.classList.remove('connected', 'disconnected');
+        dot.classList.remove('connected');
         
         switch (status) {
             case 'connected':
                 dot.classList.add('connected');
-                text.textContent = 'Connected';
+                statusText.textContent = 'Connected';
                 break;
             case 'disconnected':
-                dot.classList.add('disconnected');
-                text.textContent = 'Disconnected';
+                statusText.textContent = 'Disconnected';
                 break;
             case 'connecting':
             default:
-                text.textContent = 'Connecting...';
+                statusText.textContent = 'Connecting...';
                 break;
         }
     }
@@ -269,7 +279,7 @@ class RaceAdminDashboard {
                 this.renderFinishers();
                 
                 console.log(`✅ Loaded ${this.state.finishers.length} finishers`);
-                this.showToast('success', `Loaded ${this.state.finishers.length} finishers`, '📊');
+                this.showToast('success', `Loaded ${this.state.finishers.length} finishers`, 'check_circle');
             } else {
                 throw new Error(response.message || 'Failed to load finishers');
             }
@@ -277,7 +287,7 @@ class RaceAdminDashboard {
         } catch (error) {
             console.error('❌ Failed to load finishers:', error);
             this.updateConnectionStatus('disconnected');
-            this.showToast('error', 'Failed to load race data', '❌');
+            this.showToast('error', 'Failed to load race data', 'error');
             this.showEmptyState();
         } finally {
             this.hideLoadingState();
@@ -290,11 +300,10 @@ class RaceAdminDashboard {
     async handleAddFinisher(event) {
         event.preventDefault();
         
-        const formData = new FormData(event.target);
         const finisherData = {
-            bibNumber: parseInt(formData.get('bibNumber')),
-            racerName: formData.get('racerName').trim(),
-            finishTime: formData.get('finishTime').trim()
+            bibNumber: parseInt(this.elements.bibNumberInput.value),
+            racerName: this.elements.racerNameInput.value.trim(),
+            finishTime: this.elements.finishTimeInput.value.trim()
         };
 
         // Validate the data
@@ -305,7 +314,7 @@ class RaceAdminDashboard {
         // Convert time to milliseconds for API
         const finishTimeMs = this.timeStringToMilliseconds(finisherData.finishTime);
         if (finishTimeMs === null) {
-            this.showToast('error', 'Invalid time format. Use MM:SS.ms', '⚠️');
+            this.showToast('error', 'Invalid time format. Use MM:SS.ms', 'warning');
             return;
         }
 
@@ -314,8 +323,10 @@ class RaceAdminDashboard {
             finishTimeMs: finishTimeMs
         };
 
-        const addBtn = event.target.querySelector('.add-btn');
-        addBtn.classList.add('loading');
+        const addBtn = event.target.querySelector('button[type="submit"]');
+        const originalContent = addBtn.innerHTML;
+        addBtn.disabled = true;
+        addBtn.innerHTML = '<span class="material-symbols-outlined loading-spinner">progress_activity</span> Adding...';
 
         try {
             // API call to add new finisher
@@ -323,10 +334,10 @@ class RaceAdminDashboard {
             
             if (response.success) {
                 console.log('✅ Finisher added successfully');
-                this.showToast('success', `Added ${finisherData.racerName} (#${finisherData.bibNumber})`, '✅');
+                this.showToast('success', `Added ${finisherData.racerName} (#${finisherData.bibNumber})`, 'check_circle');
                 
                 // Reset form and hide it
-                event.target.reset();
+                this.elements.addFinisherForm.reset();
                 this.hideAddForm();
                 
                 // Reload data to get updated rankings
@@ -337,9 +348,10 @@ class RaceAdminDashboard {
             
         } catch (error) {
             console.error('❌ Failed to add finisher:', error);
-            this.showToast('error', error.message || 'Failed to add finisher', '❌');
+            this.showToast('error', error.message || 'Failed to add finisher', 'error');
         } finally {
-            addBtn.classList.remove('loading');
+            addBtn.disabled = false;
+            addBtn.innerHTML = originalContent;
         }
     }
 
@@ -389,7 +401,7 @@ class RaceAdminDashboard {
         // Convert time to milliseconds
         const finishTimeMs = this.timeStringToMilliseconds(updatedData.finishTime);
         if (finishTimeMs === null) {
-            this.showToast('error', 'Invalid time format. Use MM:SS.ms', '⚠️');
+            this.showToast('error', 'Invalid time format. Use MM:SS.ms', 'warning');
             return;
         }
 
@@ -398,8 +410,10 @@ class RaceAdminDashboard {
             finishTimeMs: finishTimeMs
         };
 
-        const saveBtn = row.querySelector('.save-btn');
-        saveBtn.classList.add('loading');
+        const saveBtn = row.querySelector('.action-button.save');
+        const originalContent = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined loading-spinner">progress_activity</span>';
 
         try {
             // API call to update finisher
@@ -407,7 +421,7 @@ class RaceAdminDashboard {
             
             if (response.success) {
                 console.log('✅ Finisher updated successfully');
-                this.showToast('success', `Updated ${updatedData.racerName}`, '✅');
+                this.showToast('success', `Updated ${updatedData.racerName}`, 'check_circle');
                 
                 // Reload data to get updated rankings
                 await this.loadFinishers();
@@ -418,9 +432,10 @@ class RaceAdminDashboard {
             
         } catch (error) {
             console.error('❌ Failed to update finisher:', error);
-            this.showToast('error', error.message || 'Failed to update finisher', '❌');
+            this.showToast('error', error.message || 'Failed to update finisher', 'error');
         } finally {
-            saveBtn.classList.remove('loading');
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalContent;
         }
     }
 
@@ -442,7 +457,7 @@ class RaceAdminDashboard {
                     
                     if (response.success) {
                         console.log('✅ Finisher deleted successfully');
-                        this.showToast('success', `Deleted ${finisher.racerName}`, '🗑️');
+                        this.showToast('success', `Deleted ${finisher.racerName}`, 'delete');
                         
                         // Reload data
                         await this.loadFinishers();
@@ -452,131 +467,14 @@ class RaceAdminDashboard {
                     
                 } catch (error) {
                     console.error('❌ Failed to delete finisher:', error);
-                    this.showToast('error', error.message || 'Failed to delete finisher', '❌');
+                    this.showToast('error', error.message || 'Failed to delete finisher', 'error');
                 }
             }
         );
     }
 
     /**
-     * DRAG AND DROP FUNCTIONALITY
-     */
-
-    /**
-     * Set up drag and drop for a row
-     */
-    setupDragAndDrop(row) {
-        const dragHandle = row.querySelector('.drag-handle');
-        
-        dragHandle.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            this.startDrag(row, e);
-        });
-
-        // Touch events for mobile
-        dragHandle.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.startDrag(row, e.touches[0]);
-        });
-    }
-
-    /**
-     * Start dragging a row
-     */
-    startDrag(row, event) {
-        this.state.draggedElement = row;
-        row.classList.add('dragging');
-        
-        const tbody = this.elements.adminTableBody;
-        const rows = Array.from(tbody.children);
-        
-        const mouseMoveHandler = (e) => {
-            const afterElement = this.getDragAfterElement(tbody, e.clientY || e.touches[0].clientY);
-            
-            if (afterElement == null) {
-                tbody.appendChild(row);
-            } else {
-                tbody.insertBefore(row, afterElement);
-            }
-        };
-
-        const mouseUpHandler = async () => {
-            row.classList.remove('dragging');
-            
-            // Calculate new order
-            const newOrder = Array.from(tbody.children).map((row, index) => ({
-                id: row.dataset.finisherId,
-                rank: index + 1
-            }));
-
-            // Send reorder request to API
-            await this.reorderFinishers(newOrder);
-            
-            // Clean up event listeners
-            document.removeEventListener('mousemove', mouseMoveHandler);
-            document.removeEventListener('mouseup', mouseUpHandler);
-            document.removeEventListener('touchmove', mouseMoveHandler);
-            document.removeEventListener('touchend', mouseUpHandler);
-            
-            this.state.draggedElement = null;
-        };
-
-        document.addEventListener('mousemove', mouseMoveHandler);
-        document.addEventListener('mouseup', mouseUpHandler);
-        document.addEventListener('touchmove', mouseMoveHandler);
-        document.addEventListener('touchend', mouseUpHandler);
-    }
-
-    /**
-     * Get the element after which the dragged element should be inserted
-     */
-    getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('tr:not(.dragging)')];
-        
-        return draggableElements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
-            }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
-    /**
-     * Send reorder request to API
-     */
-    async reorderFinishers(newOrder) {
-        try {
-            console.log('🔄 Reordering finishers...', newOrder);
-            
-            // API call to reorder finishers
-            const response = await this.apiCall('POST', this.config.endpoints.reorder, { order: newOrder });
-            
-            if (response.success) {
-                console.log('✅ Finishers reordered successfully');
-                this.showToast('success', 'Rankings updated', '🔄');
-                
-                // Reload data to reflect new order
-                await this.loadFinishers();
-            } else {
-                throw new Error(response.message || 'Failed to reorder finishers');
-            }
-            
-        } catch (error) {
-            console.error('❌ Failed to reorder finishers:', error);
-            this.showToast('error', 'Failed to update rankings', '❌');
-            
-            // Reload original order
-            await this.loadFinishers();
-        }
-    }
-
-    /**
      * API COMMUNICATION
-     * Makes real API calls to the backend with proper error handling.
      */
     async apiCall(method, endpoint, data = null) {
         console.log(`🌐 API ${method} ${endpoint}`, data);
@@ -586,17 +484,14 @@ class RaceAdminDashboard {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    // In a real app, you would add your authentication token here
-                    // 'Authorization': `Bearer ${this.getAuthToken()}`
                 },
-                signal: AbortSignal.timeout(this.config.apiTimeout) // Add a timeout
+                signal: AbortSignal.timeout(this.config.apiTimeout)
             };
 
             if (data && (method === 'POST' || method === 'PUT')) {
                 options.body = JSON.stringify(data);
             }
 
-            // Construct the full URL for the API call
             const fullUrl = `${this.config.apiBaseUrl}${endpoint}`;
             const response = await fetch(fullUrl, options);
             
@@ -605,27 +500,23 @@ class RaceAdminDashboard {
                 throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
             }
 
-            // For DELETE requests, there might be no content to parse
             if (response.status === 204) {
                 return { success: true };
             }
 
             const result = await response.json();
-            return result; // Your backend should return a { success: true, ... } structure
+            return result;
             
         } catch (error) {
             console.error('API call failed:', error);
-            // Re-throw the error so the calling function can handle it
             throw error;
         }
     }
 
     /**
      * REAL-TIME SYNC
-     * Connects to the public WebSocket to receive live updates.
      */
     startRealTimeSync() {
-        // Use the correct WebSocket URL (ws:// not http://)
         const PUBLIC_WEBSOCKET_URL = 'ws://localhost:8000/ws';
 
         try {
@@ -641,19 +532,14 @@ class RaceAdminDashboard {
                     const messageData = JSON.parse(event.data);
                     console.log('🔄 Sync: Received message', messageData);
 
-                    // Handle different message types from the server
                     if (messageData.type === 'update') {
-                        // Handle finisher update
                         this.updateOrAddFinisher(messageData.data);
                     } else if (messageData.type === 'delete') {
-                        // Handle finisher deletion
                         this.removeFinisher(messageData.id);
                     } else if (messageData.type === 'reorder') {
-                        // Handle reorder - reload all data
                         this.state.finishers = messageData.data;
                         this.renderFinishers();
                     } else {
-                        // Handle simple finisher addition (backward compatibility)
                         this.updateOrAddFinisher(messageData);
                     }
 
@@ -679,29 +565,24 @@ class RaceAdminDashboard {
     }
     
     /**
-     * A helper to smartly add/update finishers received from the sync connection
+     * Update or add finisher from sync
      */
     updateOrAddFinisher(finisherData) {
-        // Use id for matching first, then fall back to bibNumber for new additions
         let existingFinisherIndex = this.state.finishers.findIndex(f => f.id === finisherData.id);
         
         if (existingFinisherIndex === -1) {
-            // If no id match, try bibNumber for backward compatibility
             existingFinisherIndex = this.state.finishers.findIndex(f => f.bibNumber === finisherData.bibNumber);
         }
 
         if (existingFinisherIndex > -1) {
-            // Update existing finisher
             this.state.finishers[existingFinisherIndex] = {
                 ...this.state.finishers[existingFinisherIndex],
                 ...finisherData
             };
         } else {
-            // Add as a new finisher
             this.state.finishers.push(finisherData);
         }
 
-        // Sort by finish time and re-render the table
         this.state.finishers.sort((a, b) => a.finishTimeMs - b.finishTimeMs);
         this.state.finishers.forEach((finisher, index) => {
             finisher.rank = index + 1;
@@ -711,7 +592,7 @@ class RaceAdminDashboard {
     }
 
     /**
-     * Remove a finisher from the local state (used for WebSocket delete messages)
+     * Remove finisher from sync
      */
     removeFinisher(finisherId) {
         const finisherIndex = this.state.finishers.findIndex(f => f.id === finisherId);
@@ -719,7 +600,6 @@ class RaceAdminDashboard {
             const removedFinisher = this.state.finishers.splice(finisherIndex, 1)[0];
             console.log('🗑️ Removed finisher from sync:', removedFinisher);
             
-            // Re-rank remaining finishers and re-render
             this.state.finishers.sort((a, b) => a.finishTimeMs - b.finishTimeMs);
             this.state.finishers.forEach((finisher, index) => {
                 finisher.rank = index + 1;
@@ -734,62 +614,84 @@ class RaceAdminDashboard {
      */
 
     /**
-     * Show/hide add form
+     * Toggle add form visibility
      */
     toggleAddForm() {
-        const isHidden = this.elements.addFormContainer.classList.contains('hidden');
-        
-        if (isHidden) {
-            this.showAddForm();
-        } else {
+        if (this.state.addFormVisible) {
             this.hideAddForm();
+        } else {
+            this.showAddForm();
         }
-    }
-
-    showAddForm() {
-        this.elements.addFormContainer.classList.remove('hidden');
-        this.elements.toggleFormBtn.innerHTML = '<span>➖</span> Hide Form';
-        
-        // Focus first input
-        const firstInput = this.elements.addFormContainer.querySelector('input');
-        if (firstInput) {
-            firstInput.focus();
-        }
-    }
-
-    hideAddForm() {
-        this.elements.addFormContainer.classList.add('hidden');
-        this.elements.toggleFormBtn.innerHTML = '<span>➕</span> Show Form';
-        this.elements.addFinisherForm.reset();
     }
 
     /**
-     * Show/hide loading state
+     * Show add form
      */
-    showLoadingState() {
-        this.elements.loadingState.classList.remove('hidden');
-        this.elements.emptyState.classList.add('hidden');
-        this.elements.tableWrapper.classList.add('hidden');
+    showAddForm() {
+        this.elements.formCard?.classList.remove('hidden');
+        this.state.addFormVisible = true;
+        
+        // Focus first input
+        this.elements.bibNumberInput?.focus();
     }
 
+    /**
+     * Hide add form
+     */
+    hideAddForm() {
+        this.elements.formCard?.classList.add('hidden');
+        this.elements.addFinisherForm?.reset();
+        this.state.addFormVisible = false;
+    }
+
+    /**
+     * Toggle table visibility
+     */
+    toggleTable() {
+        const isHidden = this.elements.tableContainer?.classList.contains('hidden');
+        
+        if (isHidden) {
+            this.elements.tableContainer?.classList.remove('hidden');
+            this.elements.toggleTableButton.innerHTML = '<span class="material-symbols-outlined">expand_less</span> Hide Table';
+            this.elements.toggleTableButton.classList.add('active');
+        } else {
+            this.elements.tableContainer?.classList.add('hidden');
+            this.elements.toggleTableButton.innerHTML = '<span class="material-symbols-outlined">expand_more</span> Show Table';
+            this.elements.toggleTableButton.classList.remove('active');
+        }
+    }
+
+    /**
+     * Show loading state
+     */
+    showLoadingState() {
+        this.elements.loadingState?.classList.remove('hidden');
+        this.elements.emptyState?.classList.add('hidden');
+        this.elements.tableContainer?.classList.add('hidden');
+    }
+
+    /**
+     * Hide loading state
+     */
     hideLoadingState() {
-        this.elements.loadingState.classList.add('hidden');
+        this.elements.loadingState?.classList.add('hidden');
     }
 
     /**
      * Show empty state
      */
     showEmptyState() {
-        this.elements.emptyState.classList.remove('hidden');
-        this.elements.tableWrapper.classList.add('hidden');
-        this.elements.recordCount.textContent = '0 finishers';
+        this.elements.emptyState?.classList.remove('hidden');
+        this.elements.tableContainer?.classList.add('hidden');
     }
 
     /**
      * Render finishers table
      */
     renderFinishers() {
-        const tbody = this.elements.adminTableBody;
+        const tbody = this.elements.tableBody;
+        if (!tbody) return;
+        
         tbody.innerHTML = '';
 
         if (this.state.finishers.length === 0) {
@@ -797,10 +699,9 @@ class RaceAdminDashboard {
             return;
         }
 
-        // Show table and update count
-        this.elements.tableWrapper.classList.remove('hidden');
-        this.elements.emptyState.classList.add('hidden');
-        this.elements.recordCount.textContent = `${this.state.finishers.length} finisher${this.state.finishers.length !== 1 ? 's' : ''}`;
+        // Show table and hide empty state
+        this.elements.tableContainer?.classList.remove('hidden');
+        this.elements.emptyState?.classList.add('hidden');
 
         // Create table rows
         this.state.finishers.forEach(finisher => {
@@ -817,23 +718,19 @@ class RaceAdminDashboard {
         row.dataset.finisherId = finisher.id;
 
         row.innerHTML = `
-            <td class="drag-handle">⋮⋮</td>
             <td class="rank-cell">${finisher.rank}</td>
             <td class="bib-cell">#${finisher.bibNumber}</td>
             <td class="name-cell">${finisher.racerName}</td>
             <td class="time-cell">${this.millisecondsToTimeString(finisher.finishTimeMs)}</td>
             <td class="actions-cell">
-                <button class="edit-btn" onclick="window.adminDashboard.editFinisher('${finisher.id}')">
-                    ✏️ Edit
+                <button class="action-button edit" onclick="window.adminDashboard.editFinisher('${finisher.id}')" title="Edit">
+                    <span class="material-symbols-outlined">edit</span>
                 </button>
-                <button class="delete-btn" onclick="window.adminDashboard.deleteFinisher('${finisher.id}')">
-                    🗑️ Delete
+                <button class="action-button delete" onclick="window.adminDashboard.deleteFinisher('${finisher.id}')" title="Delete">
+                    <span class="material-symbols-outlined">delete</span>
                 </button>
             </td>
         `;
-
-        // Set up drag and drop
-        this.setupDragAndDrop(row);
 
         return row;
     }
@@ -858,11 +755,11 @@ class RaceAdminDashboard {
         timeCell.innerHTML = `<input type="text" class="editable-input" data-field="finishTime" value="${this.millisecondsToTimeString(finisher.finishTimeMs)}" pattern="^[0-9]{2}:[0-9]{2}\\.[0-9]{2}$">`;
         
         actionsCell.innerHTML = `
-            <button class="save-btn" onclick="window.adminDashboard.saveFinisher('${finisherId}')">
-                💾 Save
+            <button class="action-button save" onclick="window.adminDashboard.saveFinisher('${finisherId}')" title="Save">
+                <span class="material-symbols-outlined">save</span>
             </button>
-            <button class="cancel-btn" onclick="window.adminDashboard.cancelEdit()">
-                ❌ Cancel
+            <button class="action-button cancel" onclick="window.adminDashboard.cancelEdit()" title="Cancel">
+                <span class="material-symbols-outlined">close</span>
             </button>
         `;
 
@@ -880,7 +777,7 @@ class RaceAdminDashboard {
     cancelEdit() {
         if (this.state.editingRowId) {
             this.state.editingRowId = null;
-            this.renderFinishers(); // Re-render to restore original state
+            this.renderFinishers();
         }
     }
 
@@ -890,7 +787,7 @@ class RaceAdminDashboard {
     showModal(title, message, onConfirm) {
         this.elements.modalTitle.textContent = title;
         this.elements.modalMessage.textContent = message;
-        this.elements.modalOverlay.classList.remove('hidden');
+        this.elements.modalOverlay?.classList.remove('hidden');
         
         // Set up confirm handler
         const confirmHandler = () => {
@@ -899,25 +796,27 @@ class RaceAdminDashboard {
             this.elements.confirmBtn.removeEventListener('click', confirmHandler);
         };
         
-        this.elements.confirmBtn.addEventListener('click', confirmHandler);
+        this.elements.confirmBtn?.addEventListener('click', confirmHandler);
     }
 
     /**
      * Hide modal dialog
      */
     hideModal() {
-        this.elements.modalOverlay.classList.add('hidden');
+        this.elements.modalOverlay?.classList.add('hidden');
     }
 
     /**
      * Show toast notification
      */
     showToast(type, message, icon = '') {
+        if (!this.elements.toastContainer) return;
+        
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         
         toast.innerHTML = `
-            <div class="toast-icon">${icon}</div>
+            <span class="toast-icon material-symbols-outlined">${icon}</span>
             <div class="toast-message">${message}</div>
         `;
         
@@ -940,17 +839,17 @@ class RaceAdminDashboard {
      */
     validateFinisherData(data) {
         if (!data.bibNumber || data.bibNumber < 1 || data.bibNumber > 9999) {
-            this.showToast('error', 'Bib number must be between 1 and 9999', '⚠️');
+            this.showToast('error', 'Bib number must be between 1 and 9999', 'warning');
             return false;
         }
         
         if (!data.racerName || data.racerName.length < 2) {
-            this.showToast('error', 'Racer name must be at least 2 characters', '⚠️');
+            this.showToast('error', 'Racer name must be at least 2 characters', 'warning');
             return false;
         }
         
         if (!data.finishTime || !this.isValidTimeFormat(data.finishTime)) {
-            this.showToast('error', 'Invalid time format. Use MM:SS.ms (e.g., 05:21.35)', '⚠️');
+            this.showToast('error', 'Invalid time format. Use MM:SS.ms (e.g., 05:21.35)', 'warning');
             return false;
         }
         
@@ -990,9 +889,8 @@ class RaceAdminDashboard {
         const totalSeconds = Math.floor(milliseconds / 1000);
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
-        const ms = Math.floor((milliseconds % 1000) / 10); // Get centiseconds
+        const ms = Math.floor((milliseconds % 1000) / 10);
 
-        // Format with leading zeros
         const formattedMinutes = minutes.toString().padStart(2, '0');
         const formattedSeconds = seconds.toString().padStart(2, '0');
         const formattedMs = ms.toString().padStart(2, '0');
@@ -1036,16 +934,25 @@ window.addTestFinisher = (bibNumber, racerName, timeInSeconds) => {
             finishTime: window.adminDashboard.millisecondsToTimeString((timeInSeconds || Math.random() * 600 + 300) * 1000)
         };
         
-        // Simulate form submission
-        const form = document.getElementById('addFinisherForm');
-        form.bibNumber.value = finisher.bibNumber;
-        form.racerName.value = finisher.racerName;
-        form.finishTime.value = finisher.finishTime;
+        // Set form values
+        if (window.adminDashboard.elements.bibNumberInput) {
+            window.adminDashboard.elements.bibNumberInput.value = finisher.bibNumber;
+        }
+        if (window.adminDashboard.elements.racerNameInput) {
+            window.adminDashboard.elements.racerNameInput.value = finisher.racerName;
+        }
+        if (window.adminDashboard.elements.finishTimeInput) {
+            window.adminDashboard.elements.finishTimeInput.value = finisher.finishTime;
+        }
         
-        window.adminDashboard.handleAddFinisher({ 
-            preventDefault: () => {}, 
-            target: form 
-        });
+        // Simulate form submission
+        const form = window.adminDashboard.elements.addFinisherForm;
+        if (form) {
+            window.adminDashboard.handleAddFinisher({ 
+                preventDefault: () => {}, 
+                target: form 
+            });
+        }
         
         console.log('✅ Test finisher added:', finisher);
     } else {

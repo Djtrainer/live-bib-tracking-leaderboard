@@ -3,43 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Race Results</title>
+    <title>Annual Charity 5K - Live Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Header Section -->
-    <header class="header">
-        <div class="header-content">
-            <h1 class="title">Live Race Results</h1>
-            <div class="status-indicator">
-                <span class="status-dot"></span>
-                <span class="status-text">Status: Live</span>
+    <!-- Top App Bar -->
+    <header class="app-bar">
+        <div class="app-bar-content">
+            <div class="app-bar-title">
+                <h1>Annual Charity 5K - Live Results</h1>
+            </div>
+            <div class="app-bar-actions">
+                <div class="status-chip" id="statusChip">
+                    <span class="material-symbols-outlined status-icon" id="statusIcon">wifi_off</span>
+                    <span class="status-text" id="statusText">Connecting...</span>
+                </div>
             </div>
         </div>
     </header>
 
+    <!-- Stats Bar -->
+    <section class="stats-bar">
+        <div class="stats-content">
+            <div class="stat-chip">
+                <span class="material-symbols-outlined">group</span>
+                <span class="stat-label">Total:</span>
+                <span class="stat-value" id="totalFinishers">0</span>
+            </div>
+            <div class="stat-chip">
+                <span class="material-symbols-outlined">timer</span>
+                <span class="stat-label">Leading:</span>
+                <span class="stat-value" id="leadTime">--:--</span>
+            </div>
+            <div class="stat-chip">
+                <span class="material-symbols-outlined">schedule</span>
+                <span class="stat-label">Updated:</span>
+                <span class="stat-value" id="lastUpdated">Never</span>
+            </div>
+            <div class="loading-indicator" id="loadingIndicator">
+                <span class="material-symbols-outlined spinning">sync</span>
+                <span>Updating...</span>
+            </div>
+        </div>
+    </section>
+
     <!-- Main Content -->
     <main class="main-content">
-        <div class="leaderboard-container">
-            <div class="table-wrapper">
-                <table class="leaderboard-table" id="leaderboardTable">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Bib Number</th>
-                            <th>Racer Name</th>
-                            <th>Finish Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboardBody">
-                        <!-- Dynamic content will be inserted here -->
-                    </tbody>
-                </table>
+        <div class="content-container">
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState">
+                <span class="material-symbols-outlined empty-icon">flag</span>
+                <h3>Waiting for finishers</h3>
+                <p>Results will appear here as runners cross the finish line</p>
             </div>
             
-            <!-- Empty state message (hidden when data is present) -->
-            <div class="empty-state" id="emptyState">
-                <p>Waiting for race results...</p>
+            <!-- Results Table -->
+            <div class="table-container" id="tableContainer">
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th class="rank-header">Rank</th>
+                            <th class="bib-header">Bib</th>
+                            <th class="name-header">Runner Name</th>
+                            <th class="time-header">Finish Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>
