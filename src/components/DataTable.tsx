@@ -10,21 +10,23 @@ interface Column {
 interface DataTableProps {
   columns: Column[];
   data: any[];
-  renderRow: (item: any, index: number) => ReactNode;
+  renderRow: (item: any, index: number, columns: Column[]) => ReactNode;
   emptyMessage?: string;
 }
 
 export default function DataTable({ columns, data, renderRow, emptyMessage = "No data available" }: DataTableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="data-table">
+      {/* For best results, ensure this table has a fixed layout and full width */}
+      <table className="w-full table-fixed border-collapse">
         <thead>
           <tr>
             {columns.map((column) => (
               <th 
                 key={column.key} 
                 style={{ width: column.width }}
-                className={`text-${column.align || 'left'}`}
+                // Use template literals to construct the className for alignment
+                className={`text-${column.align || 'left'} px-4 py-3 font-medium text-muted-foreground`}
               >
                 {column.title}
               </th>
@@ -39,7 +41,8 @@ export default function DataTable({ columns, data, renderRow, emptyMessage = "No
               </td>
             </tr>
           ) : (
-            data.map((item, index) => renderRow(item, index))
+            // --- FIX: Pass the 'columns' array to the renderRow function ---
+            data.map((item, index) => renderRow(item, index, columns))
           )}
         </tbody>
       </table>

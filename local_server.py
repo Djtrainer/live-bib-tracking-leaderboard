@@ -42,7 +42,7 @@ app.add_middleware(
 async def get_results():
     """Endpoint to get the current list of all finishers."""
     # Sort by finish time before returning
-    race_results.sort(key=lambda x: x['finishTimeMs'])
+    race_results.sort(key=lambda x: x['finishTime'])
     return {"success": True, "data": race_results}
 
 @app.post("/api/results")
@@ -56,7 +56,7 @@ async def add_finisher(finisher_data: Dict[str, Any]):
     race_results.append(finisher_data)
     
     # Broadcast the new finisher to all connected WebSocket clients (leaderboard and admin)
-    await manager.broadcast(json.dumps(finisher_data))
+    await manager.broadcast(json.dumps({"type": "add", "data": finisher_data}))
     
     return {"success": True, "data": finisher_data}
 
@@ -89,8 +89,8 @@ async def delete_finisher(finisher_id: str):
         if finisher['id'] == finisher_id:
             deleted_finisher = race_results.pop(i)
             
-            # Broadcast the deletion to all connected WebSocket clients
-            await manager.broadcast(json.dumps({"type": "delete", "id": finisher_id}))
+            # Broadcast reload message to all connected WebSocket clients
+            await manager.broadcast(json.dumps({"action": "reload"}))
             
             return {"success": True, "message": "Finisher deleted"}
     
@@ -120,8 +120,8 @@ async def reorder_finishers(order_data: Dict[str, Any]):
     race_results.clear()
     race_results.extend(reordered_results)
     
-    # Broadcast the reorder to all connected WebSocket clients
-    await manager.broadcast(json.dumps({"type": "reorder", "data": race_results}))
+    # Broadcast reload message to all connected WebSocket clients
+    await manager.broadcast(json.dumps({"action": "reload"}))
     
     return {"success": True, "message": "Finishers reordered successfully"}
 

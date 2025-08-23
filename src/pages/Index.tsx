@@ -2,73 +2,125 @@ import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import StatusChip from '@/components/StatusChip';
 import DataTable from '@/components/DataTable';
+import { formatTime } from '../lib/utils'; 
 
 interface Finisher {
   id: string;
   rank: number;
   bibNumber: string;
-  finishTime: string;
+  finishTime: number;
   racerName?: string;
 }
 
-// Mock data for demonstration
-const mockFinishers: Finisher[] = [
-  { id: '1', rank: 1, bibNumber: '001', finishTime: '2:45:32' },
-  { id: '2', rank: 2, bibNumber: '156', finishTime: '2:47:18' },
-  { id: '3', rank: 3, bibNumber: '089', finishTime: '2:51:05' },
-  { id: '4', rank: 4, bibNumber: '234', finishTime: '2:53:41' },
-  { id: '5', rank: 5, bibNumber: '067', finishTime: '2:56:12' },
-];
-
 const Index = () => {
-  const [finishers, setFinishers] = useState<Finisher[]>(mockFinishers);
-  const [totalFinishers, setTotalFinishers] = useState(5);
+  const [finishers, setFinishers] = useState<Finisher[]>([]);
+  const [totalFinishers, setTotalFinishers] = useState(0);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate WebSocket connection for real-time updates
-    const interval = setInterval(() => {
-      // Simulate new finisher arriving
-      if (Math.random() > 0.8) {
-        const newRank = finishers.length + 1;
-        const newFinisher: Finisher = {
-          id: `${newRank}`,
-          rank: newRank,
-          bibNumber: String(Math.floor(Math.random() * 999) + 1).padStart(3, '0'),
-          finishTime: `${Math.floor(Math.random() * 2) + 2}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`
-        };
+    // Fetch initial data from backend
+    const fetchFinishers = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:8000/api/results');
+        const result = await response.json();
         
-        setFinishers(prev => [...prev, newFinisher]);
-        setTotalFinishers(prev => prev + 1);
-        setLastUpdated(new Date());
+        if (result.success && result.data) {
+          setFinishers(result.data);
+          setTotalFinishers(result.data.length);
+          setLastUpdated(new Date());
+        } else {
+          console.error('Failed to fetch results:', result);
+        }
+      } catch (error) {
+        console.error('Error fetching finishers:', error);
+      } finally {
+        setLoading(false);
       }
-    }, 5000);
+    };
 
-    return () => clearInterval(interval);
-  }, [finishers.length]);
+    fetchFinishers();
+
+    // Set up WebSocket connection for real-time updates
+    const ws = new WebSocket('ws://localhost:8000/ws');
+    
+    ws.onopen = () => {
+      console.log('WebSocket connected to leaderboard');
+    };
+    
+    ws.onmessage = async (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        console.log('Received WebSocket message:', message);
+        
+        if (message.action === 'reload') {
+          // Reload all data when instructed (for delete/reorder operations)
+          const response = await fetch('http://localhost:8000/api/results');
+          const result = await response.json();
+          
+          if (result.success && result.data) {
+            setFinishers(result.data);
+            setTotalFinishers(result.data.length);
+            setLastUpdated(new Date());
+          }
+        } else if (message.type === 'add' || message.type === 'update') {
+          setFinishers(prev => {
+            const existingIndex = prev.findIndex(f => f.id === message.data.id || f.bibNumber === message.data.bibNumber);
+            let updated;
+            if (existingIndex > -1) {
+              updated = [...prev];
+              updated[existingIndex] = { ...updated[existingIndex], ...message.data };
+            } else {
+              updated = [...prev, message.data];
+            }
+            // --- THIS IS THE CORRECT NUMERICAL SORT ---
+            updated.sort((a, b) => a.finishTime - b.finishTime);
+            return updated;
+          });
+          setLastUpdated(new Date());
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    };
+    
+    ws.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+    
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   const columns = [
     { key: 'rank', title: 'Rank', width: '80px', align: 'center' as const },
     { key: 'bibNumber', title: 'Bib #', width: '100px', align: 'center' as const },
-    { key: 'finishTime', title: 'Finish Time', align: 'center' as const },
+    { key: 'racerName', title: 'Racer Name', width: '200px', align: 'left' as const },
+    { key: 'finishTime', title: 'Finish Time', width: '120px', align: 'center' as const },
   ];
 
   const renderRow = (finisher: Finisher, index: number) => (
-    <tr key={finisher.id} className={index >= mockFinishers.length ? 'new-entry' : ''}>
-      <td className="text-center font-mono">
-        {finisher.rank <= 3 ? (
-          <div className="flex items-center justify-center gap-1">
-            <span className="material-icon text-warning">
-              {finisher.rank === 1 ? 'workspace_premium' : 'emoji_events'}
-            </span>
-            <span>{finisher.rank}</span>
-          </div>
-        ) : (
-          finisher.rank
-        )}
+    <tr key={finisher.id || finisher.bibNumber}>
+      {/* Re-calculate rank based on the sorted index */}
+      <td className="text-center font-mono" style={{ width: '80px' }}>
+        {index + 1}
       </td>
-      <td className="text-center font-mono font-medium">{finisher.bibNumber}</td>
-      <td className="text-center font-mono text-lg font-medium">{finisher.finishTime}</td>
+      <td className="text-center font-mono font-medium" style={{ width: '100px' }}>
+        {finisher.bibNumber}
+      </td>
+      <td className="text-left" style={{ width: '200px' }}> {/* Names look better left-aligned */}
+        {finisher.racerName || 'N/A'}
+      </td>
+      <td className="text-center font-mono text-lg font-medium" style={{ width: '120px' }}>
+        {/* Always format the time, as it comes from the DB as a number */}
+        {formatTime(finisher.finishTime)}
+      </td>
     </tr>
   );
 
@@ -77,7 +129,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">2024 Marathon Championship</h1>
+          <h1 className="text-3xl font-bold mb-2">2025 Slay Sarcoma Race Results</h1>
           <p className="text-muted-foreground">Live race results updated in real-time</p>
         </div>
 

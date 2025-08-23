@@ -4,26 +4,20 @@ import Layout from '@/components/Layout';
 import StatusChip from '@/components/StatusChip';
 import DataTable from '@/components/DataTable';
 import IconButton from '@/components/IconButton';
+import { formatTime } from '../lib/utils'; 
 
 interface Finisher {
   id: string;
   rank: number;
   bibNumber: string;
   racerName: string;
-  finishTime: string;
+  finishTime: number;
   isEditing?: boolean;
 }
 
-const mockFinishers: Finisher[] = [
-  { id: '1', rank: 1, bibNumber: '001', racerName: 'Sarah Johnson', finishTime: '2:45:32' },
-  { id: '2', rank: 2, bibNumber: '156', racerName: 'Mike Chen', finishTime: '2:47:18' },
-  { id: '3', rank: 3, bibNumber: '089', racerName: 'Emily Rodriguez', finishTime: '2:51:05' },
-  { id: '4', rank: 4, bibNumber: '234', racerName: 'David Wilson', finishTime: '2:53:41' },
-  { id: '5', rank: 5, bibNumber: '067', racerName: 'Lisa Thompson', finishTime: '2:56:12' },
-];
-
 export default function AdminDashboard() {
-  const [finishers, setFinishers] = useState<Finisher[]>(mockFinishers);
+  const [finishers, setFinishers] = useState<Finisher[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newFinisher, setNewFinisher] = useState({ bibNumber: '', racerName: '', finishTime: '' });
   const [showAddForm, setShowAddForm] = useState(false);
@@ -33,42 +27,126 @@ export default function AdminDashboard() {
     // Check authentication
     if (!sessionStorage.getItem('isAdmin')) {
       navigate('/admin');
+      return;
     }
+
+    // Fetch finishers data from backend
+    const fetchFinishers = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:8000/api/results');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setFinishers(result.data);
+        } else {
+          console.error('Failed to fetch results:', result);
+        }
+      } catch (error) {
+        console.error('Error fetching finishers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFinishers();
   }, [navigate]);
 
   const handleEdit = (id: string) => {
     setEditingId(id);
   };
 
-  const handleSave = (id: string, updatedData: Partial<Finisher>) => {
-    setFinishers(prev => prev.map(f => 
-      f.id === id ? { ...f, ...updatedData } : f
-    ));
-    setEditingId(null);
-  };
+  const handleSave = async (id: string, updatedData: Partial<Finisher>) => {
+    try {
+      const finisher = finishers.find(f => f.id === id);
+      if (!finisher) return;
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this entry?')) {
-      setFinishers(prev => prev.filter(f => f.id !== id));
+      const updatedFinisher = { ...finisher, ...updatedData };
+      
+      const response = await fetch(`http://localhost:8000/api/results/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedFinisher),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setFinishers(prev => prev.map(f => 
+          f.id === id ? { ...f, ...updatedData } : f
+        ));
+        setEditingId(null);
+      } else {
+        console.error('Failed to update finisher:', result);
+        alert('Failed to update finisher. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error updating finisher:', error);
+      alert('Error updating finisher. Please try again.');
     }
   };
 
-  const handleAddFinisher = () => {
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this entry?')) {
+      try {
+        const response = await fetch(`http://localhost:8000/api/results/${id}`, {
+          method: 'DELETE',
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          setFinishers(prev => prev.filter(f => f.id !== id));
+        } else {
+          console.error('Failed to delete finisher:', result);
+          alert('Failed to delete finisher. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error deleting finisher:', error);
+        alert('Error deleting finisher. Please try again.');
+      }
+    }
+  };
+
+  const handleAddFinisher = async () => {
     if (!newFinisher.bibNumber || !newFinisher.racerName || !newFinisher.finishTime) {
       alert('Please fill in all fields');
       return;
     }
 
-    const newRank = Math.max(...finishers.map(f => f.rank)) + 1;
-    const finisher: Finisher = {
-      id: Date.now().toString(),
-      rank: newRank,
-      ...newFinisher
-    };
+    try {
+      const newRank = finishers.length > 0 ? Math.max(...finishers.map(f => f.rank)) + 1 : 1;
+      const finisher = {
+        bibNumber: newFinisher.bibNumber,
+        racerName: newFinisher.racerName,
+        finishTime: newFinisher.finishTime,
+        rank: newRank,
+      };
 
-    setFinishers(prev => [...prev, finisher]);
-    setNewFinisher({ bibNumber: '', racerName: '', finishTime: '' });
-    setShowAddForm(false);
+      const response = await fetch('http://localhost:8000/api/results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(finisher),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setFinishers(prev => [...prev, result.data]);
+        setNewFinisher({ bibNumber: '', racerName: '', finishTime: '' });
+        setShowAddForm(false);
+      } else {
+        console.error('Failed to add finisher:', result);
+        alert('Failed to add finisher. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error adding finisher:', error);
+      alert('Error adding finisher. Please try again.');
+    }
   };
 
   const handleLogout = () => {
@@ -79,18 +157,26 @@ export default function AdminDashboard() {
   const columns = [
     { key: 'rank', title: 'Rank', width: '80px', align: 'center' as const },
     { key: 'bibNumber', title: 'Bib #', width: '100px', align: 'center' as const },
-    { key: 'racerName', title: 'Racer Name', width: '200px' },
+    { key: 'racerName', title: 'Racer Name', width: '200px', align: 'left' as const },
     { key: 'finishTime', title: 'Finish Time', width: '120px', align: 'center' as const },
     { key: 'actions', title: 'Actions', width: '120px', align: 'center' as const },
   ];
 
-  const renderRow = (finisher: Finisher) => {
+  const renderRow = (finisher: Finisher, index: number, columns: any[]) => {
     const isEditing = editingId === finisher.id;
     
     return (
       <tr key={finisher.id}>
-        <td className="text-center font-mono">{finisher.rank}</td>
-        <td className="text-center font-mono font-medium">
+        <td 
+          className={`text-${columns[0].align} font-mono`}
+          style={{ width: columns[0].width }}
+        >
+          {finisher.rank}
+        </td>
+        <td 
+          className={`text-${columns[1].align} font-mono font-medium`}
+          style={{ width: columns[1].width }}
+        >
           {isEditing ? (
             <input
               type="text"
@@ -102,7 +188,10 @@ export default function AdminDashboard() {
             finisher.bibNumber
           )}
         </td>
-        <td>
+        <td 
+          className={`text-${columns[2].align} font-mono font-medium`}
+          style={{ width: columns[2].width }}
+        >
           {isEditing ? (
             <input
               type="text"
@@ -114,19 +203,25 @@ export default function AdminDashboard() {
             finisher.racerName
           )}
         </td>
-        <td className="text-center font-mono">
+        <td 
+          className={`text-${columns[3].align} font-mono`}
+          style={{ width: columns[3].width }}
+        >
           {isEditing ? (
             <input
               type="text"
-              defaultValue={finisher.finishTime}
+              defaultValue={typeof finisher.finishTime === 'number' ? formatTime(finisher.finishTime) : finisher.finishTime}
               className="form-input w-24 text-center"
               onBlur={(e) => handleSave(finisher.id, { finishTime: e.target.value })}
             />
           ) : (
-            finisher.finishTime
+            typeof finisher.finishTime === 'number' ? formatTime(finisher.finishTime) : finisher.finishTime
           )}
         </td>
-        <td className="text-center">
+        <td 
+          className={`text-${columns[4].align}`}
+          style={{ width: columns[4].width }}
+        >
           <div className="flex items-center justify-center gap-1">
             {isEditing ? (
               <IconButton
