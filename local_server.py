@@ -74,10 +74,12 @@ async def add_finisher(finisher_data: Dict[str, Any]):
     finisher_data["id"] = str(
         finisher_data["bibNumber"]
     )  # Use bib number as a simple ID
-    finisher_data["finishTime"] = time_string_to_milliseconds(
-        finisher_data["finishTime"]
-    )
-    print(finisher_data)
+    if "finishTime" in finisher_data and isinstance(finisher_data["finishTime"], str):
+        time_ms = time_string_to_milliseconds(finisher_data["finishTime"])
+        if time_ms < 0:
+            return {"success": False, "message": "Invalid time format. Use MM:SS.ms"}
+        finisher_data["finishTime"] = time_ms
+
     race_results.append(finisher_data)
 
     # Broadcast the new finisher to all connected WebSocket clients (leaderboard and admin)
