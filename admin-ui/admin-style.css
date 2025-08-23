@@ -40,6 +40,16 @@ body {
     font-weight: 400;
 }
 
+/* Login Container - Centered Layout */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg-primary);
+}
+
 /* Material Symbols Icons */
 .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
@@ -154,10 +164,10 @@ body {
     border: 1px solid rgba(242, 139, 130, 0.2);
 }
 
-.login-button {
-    background: var(--accent-primary);
-    color: var(--bg-primary);
-    border: none;
+.login-btn {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
     padding: 12px 24px;
     border-radius: 8px;
     font-size: 14px;
@@ -169,15 +179,22 @@ body {
     justify-content: center;
     gap: 8px;
     position: relative;
+    box-shadow: 0 1px 3px var(--shadow-light);
 }
 
-.login-button:hover {
-    background: var(--accent-secondary);
+.login-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 2px 6px var(--shadow-light);
 }
 
-.login-button:disabled {
+.login-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
+    border-color: var(--border-light);
 }
 
 /* Admin Dashboard */
@@ -396,33 +413,9 @@ body {
     flex-wrap: wrap;
 }
 
-.primary-button {
-    background: var(--accent-primary);
-    color: var(--bg-primary);
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.primary-button:hover {
-    background: var(--accent-secondary);
-}
-
-.primary-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.secondary-button {
+.primary-btn {
     background: var(--bg-tertiary);
-    color: var(--text-primary);
+    color: var(--accent-primary);
     border: 1px solid var(--border-light);
     padding: 12px 24px;
     border-radius: 8px;
@@ -433,10 +426,63 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    box-shadow: 0 1px 3px var(--shadow-light);
 }
 
-.secondary-button:hover {
-    background: var(--bg-primary);
+.primary-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 2px 6px var(--shadow-light);
+}
+
+.primary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
+    border-color: var(--border-light);
+}
+
+.secondary-btn {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-light);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 1px 3px var(--shadow-light);
+}
+
+.secondary-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: 0 2px 6px var(--shadow-light);
+}
+
+/* Icon buttons in app bar */
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 /* Table Styles */
@@ -520,9 +566,9 @@ body {
     text-align: right;
 }
 
-/* Action Buttons */
+/* Action Buttons - Gemini Input Field Style */
 .action-button {
-    background: none;
+    background: var(--bg-tertiary);
     border: 1px solid var(--border-light);
     color: var(--text-secondary);
     padding: 6px;
@@ -535,39 +581,55 @@ body {
     justify-content: center;
     width: 32px;
     height: 32px;
+    box-shadow: 0 1px 2px var(--shadow-light);
 }
 
 .action-button:hover {
-    background: var(--bg-tertiary);
+    background: var(--bg-secondary);
     color: var(--text-primary);
+    box-shadow: 0 2px 4px var(--shadow-light);
 }
 
 .action-button.edit:hover {
-    background: rgba(138, 180, 248, 0.1);
+    background: var(--bg-secondary);
     border-color: var(--accent-primary);
     color: var(--accent-primary);
+    box-shadow: 0 2px 4px var(--shadow-light);
 }
 
 .action-button.delete:hover {
-    background: rgba(242, 139, 130, 0.1);
+    background: var(--bg-secondary);
     border-color: var(--error);
     color: var(--error);
+    box-shadow: 0 2px 4px var(--shadow-light);
 }
 
 .action-button.save {
-    background: var(--success);
-    border-color: var(--success);
-    color: var(--bg-primary);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    color: var(--success);
+    box-shadow: 0 1px 2px var(--shadow-light);
 }
 
 .action-button.save:hover {
-    background: #6bb77b;
+    background: var(--bg-secondary);
+    border-color: var(--success);
+    color: var(--success);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.action-button.cancel {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    box-shadow: 0 1px 2px var(--shadow-light);
 }
 
 .action-button.cancel:hover {
-    background: rgba(242, 139, 130, 0.1);
+    background: var(--bg-secondary);
     border-color: var(--error);
     color: var(--error);
+    box-shadow: 0 2px 4px var(--shadow-light);
 }
 
 /* Editable Inputs */
