@@ -38,6 +38,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def time_string_to_milliseconds(time_str: str) -> float:
+    """Converts a MM:SS.ms string to total milliseconds."""
+    try:
+        minutes, seconds_ms = time_str.split(':')
+        seconds, centiseconds = seconds_ms.split('.')
+        
+        total_ms = (int(minutes) * 60 * 1000) + \
+                   (int(seconds) * 1000) + \
+                   (int(centiseconds) * 10)
+        return float(total_ms)
+    except (ValueError, IndexError):
+        # Return an invalid value if the format is wrong
+        return -1.0 
+    
 @app.get("/api/results")
 async def get_results():
     """Endpoint to get the current list of all finishers."""
@@ -52,7 +66,8 @@ async def add_finisher(finisher_data: Dict[str, Any]):
     
     # Add a unique ID for admin UI purposes
     finisher_data['id'] = str(finisher_data['bibNumber']) # Use bib number as a simple ID
-    
+    finisher_data['finishTime'] = time_string_to_milliseconds(finisher_data['finishTime'])
+    print(finisher_data)
     race_results.append(finisher_data)
     
     # Broadcast the new finisher to all connected WebSocket clients (leaderboard and admin)
@@ -64,6 +79,12 @@ async def add_finisher(finisher_data: Dict[str, Any]):
 async def update_finisher(finisher_id: str, finisher_data: Dict[str, Any]):
     """Endpoint to update an existing finisher."""
     print(f"Updating finisher {finisher_id} with data: {finisher_data}")
+    
+    if 'finishTime' in finisher_data and isinstance(finisher_data['finishTime'], str):
+        time_ms = time_string_to_milliseconds(finisher_data['finishTime'])
+        if time_ms < 0:
+            return {"success": False, "message": "Invalid time format. Use MM:SS.ms"}
+        finisher_data['finishTime'] = time_ms
     
     # Find the finisher by ID
     for i, finisher in enumerate(race_results):
