@@ -1,0 +1,29 @@
+Metadata-Version: 2.4
+Name: live-bib-tracking
+Version: 0.1.0
+Summary: A project for racer bib identification, reading and tracking
+License: MIT
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Classifier: Intended Audience :: Science/Research
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: matplotlib==3.10.3
+Requires-Dist: numpy==2.2.0
+Requires-Dist: pandas==2.3.0
+Requires-Dist: PyYAML==6.0.2
+Requires-Dist: scikit-learn==1.6.1
+Requires-Dist: scipy==1.15.3
+Requires-Dist: seaborn==0.13.2
+Requires-Dist: shap==0.48.0
+Requires-Dist: statsmodels==0.14.4
+Requires-Dist: torch==2.7.1
+Requires-Dist: torch-geometric==2.6.1
+Requires-Dist: tqdm==4.67.1
+Requires-Dist: wandb==0.21.0
+Requires-Dist: xgboost==3.0.2
+
+# live-bib-tracking
+Identifies bib numbers from racers crossing the finish line of races and updates a live leaderboard.

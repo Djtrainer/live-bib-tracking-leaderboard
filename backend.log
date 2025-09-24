@@ -1,0 +1,111 @@
+[0;34m🏃‍♂️ Live Bib Tracking - Native macOS Processing 📹[0m
+==============================================================
+[0;34mConfiguration:[0m
+  Model Path: /Users/dantrainer/projects/live-bib-tracking/runs/detect/yolo11_white_bibs/weights/last.pt
+  Port: 8001
+  Input Source: Video file
+  Video Path: /Users/dantrainer/projects/live-bib-tracking/data/raw/race_1080p.mp4
+
+[0;34m🔍 Running pre-flight checks...[0m
+
+[1;33m🐍 Checking Python environment...[0m
+[0;32m✅ Python 3.11 found[0m
+[1;33m⚠️  No virtual environment detected[0m
+[0;34m💡 Consider using: python3 -m venv venv && source venv/bin/activate[0m
+
+[1;33m📦 Checking required packages...[0m
+[0;32m✅ cv2[0m
+[0;32m✅ ultralytics[0m
+[0;32m✅ easyocr[0m
+[0;32m✅ fastapi[0m
+[0;32m✅ uvicorn[0m
+[0;32m✅ numpy[0m
+[0;32m✅ requests[0m
+
+[1;33m🤖 Checking model file...[0m
+[0;32m✅ Model file found: /Users/dantrainer/projects/live-bib-tracking/runs/detect/yolo11_white_bibs/weights/last.pt (5MB)[0m
+
+[1;33m🎬 Checking video file...[0m
+[0;32m✅ Video file found: /Users/dantrainer/projects/live-bib-tracking/data/raw/race_1080p.mp4 (6750MB)[0m
+[0;32m✅ Video is readable: 160289 frames, 59.97 FPS, 44:32 duration[0m
+
+[0;32m✅ All checks passed![0m
+
+[1;33m🚀 Starting bib tracking processing...[0m
+[0;34m🌐 Server will be available at: http://localhost:8001[0m
+[0;34m🤖 Using model: /Users/dantrainer/projects/live-bib-tracking/runs/detect/yolo11_white_bibs/weights/last.pt[0m
+[0;34m🎬 Processing video file: /Users/dantrainer/projects/live-bib-tracking/data/raw/race_1080p.mp4[0m
+
+[1;33m💡 Press Ctrl+C to stop the server[0m
+
+2025-09-24 08:56:20,290 - Frontend dist directory not found - static files will not be served
+2025-09-24 08:56:20,290 - Frontend dist directory not found - static files will not be served
+2025-09-24 08:56:20,290 - The server will still provide API endpoints and video streaming
+2025-09-24 08:56:20,290 - The server will still provide API endpoints and video streaming
+2025-09-24 08:56:20,291 - Test Mode: Using video file /Users/dantrainer/projects/live-bib-tracking/data/raw/race_1080p.mp4
+2025-09-24 08:56:20,291 - Test Mode: Using video file /Users/dantrainer/projects/live-bib-tracking/data/raw/race_1080p.mp4
+2025-09-24 08:56:20,291 - Model file size: 5.2 MB
+2025-09-24 08:56:20,291 - Model file size: 5.2 MB
+2025-09-24 08:56:20,291 - Video file size: 6750.9 MB
+2025-09-24 08:56:20,291 - Video file size: 6750.9 MB
+2025-09-24 08:56:20,291 - Initializing video processor...
+2025-09-24 08:56:20,291 - Initializing video processor...
+2025-09-24 08:56:20,291 - Test Mode - Video File: /Users/dantrainer/projects/live-bib-tracking/data/raw/race_1080p.mp4
+2025-09-24 08:56:20,291 - Test Mode - Video File: /Users/dantrainer/projects/live-bib-tracking/data/raw/race_1080p.mp4
+2025-09-24 08:56:20,291 - Model: /Users/dantrainer/projects/live-bib-tracking/runs/detect/yolo11_white_bibs/weights/last.pt
+2025-09-24 08:56:20,291 - Model: /Users/dantrainer/projects/live-bib-tracking/runs/detect/yolo11_white_bibs/weights/last.pt
+2025-09-24 08:56:20,291 - Target FPS: 20
+2025-09-24 08:56:20,291 - Target FPS: 20
+2025-09-24 08:56:20,291 - Confidence threshold: 0.3
+2025-09-24 08:56:20,291 - Confidence threshold: 0.3
+2025-09-24 08:56:20,291 - Loading models...
+2025-09-24 08:56:20,291 - Loading models...
+2025-09-24 08:56:20,335 - Models loaded successfully!
+2025-09-24 08:56:20,335 - Models loaded successfully!
+2025-09-24 08:56:20,335 - Initializing EasyOCR reader...
+2025-09-24 08:56:20,335 - Initializing EasyOCR reader...
+2025-09-24 08:56:22,941 - EasyOCR reader initialized!
+2025-09-24 08:56:22,941 - EasyOCR reader initialized!
+2025-09-24 08:56:22,942 - Opening video file: /Users/dantrainer/projects/live-bib-tracking/data/raw/race_1080p.mp4
+2025-09-24 08:56:22,942 - Opening video file: /Users/dantrainer/projects/live-bib-tracking/data/raw/race_1080p.mp4
+2025-09-24 08:56:23,068 - ✅ Video processor initialized successfully in Test Mode!
+2025-09-24 08:56:23,068 - ✅ Video processor initialized successfully in Test Mode!
+2025-09-24 08:56:23,068 - Starting unified server on http://0.0.0.0:8001
+2025-09-24 08:56:23,068 - Starting unified server on http://0.0.0.0:8001
+2025-09-24 08:56:23,068 - This server handles:
+2025-09-24 08:56:23,068 - This server handles:
+2025-09-24 08:56:23,068 -   - REST API endpoints (/api/*)
+2025-09-24 08:56:23,068 -   - REST API endpoints (/api/*)
+2025-09-24 08:56:23,068 -   - WebSocket connections (/ws)
+2025-09-24 08:56:23,068 -   - WebSocket connections (/ws)
+2025-09-24 08:56:23,068 -   - Live video stream (/video_feed)
+2025-09-24 08:56:23,068 -   - Live video stream (/video_feed)
+2025-09-24 08:56:23,068 -   - Admin frontend (static files)
+2025-09-24 08:56:23,068 -   - Admin frontend (static files)
+2025-09-24 08:56:23,068 - Open your browser and navigate to the server URL to view the live stream
+2025-09-24 08:56:23,068 - Open your browser and navigate to the server URL to view the live stream
+2025-09-24 08:56:23,068 - Press Ctrl+C to stop the server
+2025-09-24 08:56:23,068 - Press Ctrl+C to stop the server
+INFO:     Started server process [5542]
+INFO:     Waiting for application startup.
+2025-09-24 08:56:23,137 - Application startup: FastAPI server ready
+2025-09-24 08:56:23,137 - Application startup: FastAPI server ready
+2025-09-24 08:56:23,137 - Processor already initialized in main() - skipping lifespan initialization
+2025-09-24 08:56:23,137 - Processor already initialized in main() - skipping lifespan initialization
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:63859 - "WebSocket /ws" [accepted]
+2025-09-24 08:56:27,848 - 🔗 WebSocket client connected. Total clients: 1
+2025-09-24 08:56:27,848 - 🔗 WebSocket client connected. Total clients: 1
+INFO:     connection open
+🔗 WebSocket client connected. Total clients: 1
+WebSocket client connected. Total clients: 1
+INFO:     127.0.0.1:63861 - "GET /api/clock/status HTTP/1.1" 200 OK
+INFO:     Shutting down
+2025-09-24 08:56:36,281 - ❌ WebSocket client disconnected. Total clients: 0
+2025-09-24 08:56:36,281 - ❌ WebSocket client disconnected. Total clients: 0
+INFO:     connection closed
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [5542]
+./run_live_native.sh: line 318:  5542 Terminated: 15          python3 src/api_backend/local_server.py --inference_mode test --video "$VIDEO_PATH" --model "$MODEL_PATH" --host 0.0.0.0 --port "$PORT" --fps 20 --conf 0.3
